@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-navy: #0D3B66;
+    --brand-coral: #F95738;
+    --brand-orange: #EE964B;
+    --brand-yellow: #F4D35E;
+    --brand-cream: #FAF0CA;
+    --brand-bg: #FFFCF0;
+    --brand-textDark: #1C1917;
+    --brand-textMuted: #57534D;
+  }
+
+  body {
+    background-color: var(--brand-bg);
+    color: var(--brand-textDark);
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+/* Custom Utilities for Framer-like polish */
+.framer-badge {
+  font-family: 'Fragment Mono', monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.glass-nav {
+  background: rgba(255, 252, 240, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(250, 236, 222, 0.8);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFCF0;
+}
+::-webkit-scrollbar-thumb {
+  background: #EE964B;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F95738;
+}
