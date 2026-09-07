@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "postinstall": "node -e \"try { const fs=require('fs'), p=require('path'), b=p.join('node_modules','.bin'); fs.readdirSync(b).forEach(f=>fs.chmodSync(p.join(b,f), 0o755)) } catch(e){}\""
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -1,0 +1,4 @@
+{
+  "framework": "vite",
+  "buildCommand": "node -e \"try { const fs=require('fs'), p=require('path'), b=p.join('node_modules','.bin'); fs.readdirSync(b).forEach(f=>fs.chmodSync(p.join(b,f), 0o755)) } catch(e){}\" && vite build"
+}
