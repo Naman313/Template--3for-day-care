@@ -1,27 +1,62 @@
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useReducedMotion } from 'framer-motion';
 import { Shield, UtensilsCrossed, SunMedium } from 'lucide-react';
 import { FRAMER_IMAGES } from '../../data/mockData';
 
 export const HavenEnvironment: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
-  // Scroll animation hooks to bring cards closer on scroll down and spread away on scroll up
+  // 1. Core Scroll Progress derived from the section's position in the viewport
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ['start end', 'center center'],
+    offset: ['start end', 'end start'],
   });
 
-  // Left card moves from -80px to 0px (inward) and rotates from -4deg to 0deg
-  const leftX = useTransform(scrollYProgress, [0, 1], [-80, 0]);
-  const leftRotate = useTransform(scrollYProgress, [0, 1], [-4, 0]);
+  // Smooth scroll progress using spring physics to eliminate jitter at 60fps
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 22,
+    mass: 0.3,
+  });
 
-  // Right card moves from +80px to 0px (inward) and rotates from +4deg to 0deg
-  const rightX = useTransform(scrollYProgress, [0, 1], [80, 0]);
-  const rightRotate = useTransform(scrollYProgress, [0, 1], [4, 0]);
+  // ====================================================
+  // STATE 1 — HEADING ANIMATION VALUES
+  // ====================================================
+  const headingOpacity = useTransform(smoothProgress, [0, 0.12, 0.32, 0.45], [0, 1, 1, 0.85]);
+  const headingY = useTransform(smoothProgress, [0, 0.12, 0.32, 0.45], [40, 0, 0, -15]);
 
-  // Center card scales smoothly from 0.92 to 1
-  const centerScale = useTransform(scrollYProgress, [0, 1], [0.92, 1]);
+  // ====================================================
+  // STATE 2 — THREE-CARD ENVIRONMENT COMPOSITION
+  // ====================================================
+  const cardsContainerY = useTransform(smoothProgress, [0.12, 0.35, 0.55, 0.72], [50, 0, 0, -30]);
+  const cardsContainerOpacity = useTransform(smoothProgress, [0.12, 0.3, 0.58, 0.72], [0, 1, 1, 0.8]);
+
+  // Left Card (Classroom / Clean hands) - Inward scroll slide, rotation & tag parallax
+  const leftX = useTransform(smoothProgress, [0.15, 0.38], [-70, 0]);
+  const leftRotate = useTransform(smoothProgress, [0.15, 0.38], [-3, 0]);
+  const leftTagY = useTransform(smoothProgress, [0.15, 0.45], [18, -12]);
+
+  // Center Card (Kitchen / Food) - Scale & Y-translation with tag parallax
+  const centerScale = useTransform(smoothProgress, [0.2, 0.42], [0.92, 1]);
+  const centerCardY = useTransform(smoothProgress, [0.2, 0.42], [40, 0]);
+  const centerTagY = useTransform(smoothProgress, [0.2, 0.48], [25, -15]);
+
+  // Right Card (Nature / Outdoors) - Inward scroll slide, rotation & tag parallax
+  const rightX = useTransform(smoothProgress, [0.25, 0.45], [70, 0]);
+  const rightRotate = useTransform(smoothProgress, [0.25, 0.45], [3, 0]);
+  const rightTagY = useTransform(smoothProgress, [0.25, 0.5], [18, -12]);
+
+  // ====================================================
+  // STATE 3 — LARGE CHILD IMAGE / MOMENTS PANEL
+  // ====================================================
+  const largeImageY = useTransform(smoothProgress, [0.45, 0.75], [90, 0]);
+  const largeImageScale = useTransform(smoothProgress, [0.45, 0.75], [0.95, 1]);
+  const largeImageOpacity = useTransform(smoothProgress, [0.45, 0.65], [0, 1]);
+
+  // Text overlay inside large child image (delayed relative to image for depth)
+  const largeTextY = useTransform(smoothProgress, [0.6, 0.85], [45, 0]);
+  const largeTextOpacity = useTransform(smoothProgress, [0.6, 0.82], [0, 1]);
 
   const cards = [
     {
@@ -48,11 +83,17 @@ export const HavenEnvironment: React.FC = () => {
   ];
 
   return (
-    <section ref={sectionRef} className="py-20 sm:py-28 bg-[#F6ECE1] relative overflow-hidden">
+    <section ref={sectionRef} className="py-20 sm:py-28 lg:py-36 bg-[#F6ECE1] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center max-w-5xl mx-auto mb-16 pt-2">
+
+        {/* STATE 1 — HEADING & INTRO */}
+        <motion.div
+          style={{
+            y: shouldReduceMotion ? 0 : headingY,
+            opacity: shouldReduceMotion ? 1 : headingOpacity,
+          }}
+          className="text-center max-w-5xl mx-auto mb-16 pt-2"
+        >
           {/* Larger Navy Blue Pill Badge */}
           <div className="inline-block bg-[#0D3B66] text-white text-sm sm:text-base md:text-lg font-poppins font-bold px-8 py-3 rounded-full shadow-md mb-6 tracking-wide">
             A Haven for a Happy Childhood
@@ -64,35 +105,42 @@ export const HavenEnvironment: React.FC = () => {
             and clean for my little one?
           </h2>
 
-          {/* Charcoal Description - Larger font for bigger screens */}
+          {/* Charcoal Description */}
           <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-[#1C1917] font-poppins font-medium max-w-4xl mx-auto text-center leading-relaxed">
             Every corner is carefully maintained to give your child a safe, clean, and comfortable environment to bloom naturally.
           </p>
-        </div>
+        </motion.div>
 
-        {/* 3 Environment Cards Grid with Scroll Convergence Animation */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* STATE 2 — THREE ENVIRONMENT CARDS COMPOSITION */}
+        <motion.div
+          style={{
+            y: shouldReduceMotion ? 0 : cardsContainerY,
+            opacity: shouldReduceMotion ? 1 : cardsContainerOpacity,
+          }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+        >
           {cards.map((card, idx) => {
             const Icon = card.icon;
-            
-            // Apply unique scroll transform per card position
+
+            // Layered Motion Styles per Card & Tag Parallax
             let cardMotionStyle = {};
+            let tagYVal = leftTagY;
+
             if (idx === 0) {
-              cardMotionStyle = { x: leftX, rotate: leftRotate };
+              cardMotionStyle = { x: shouldReduceMotion ? 0 : leftX, rotate: shouldReduceMotion ? 0 : leftRotate };
+              tagYVal = leftTagY;
             } else if (idx === 1) {
-              cardMotionStyle = { scale: centerScale };
+              cardMotionStyle = { scale: shouldReduceMotion ? 1 : centerScale, y: shouldReduceMotion ? 0 : centerCardY };
+              tagYVal = centerTagY;
             } else if (idx === 2) {
-              cardMotionStyle = { x: rightX, rotate: rightRotate };
+              cardMotionStyle = { x: shouldReduceMotion ? 0 : rightX, rotate: shouldReduceMotion ? 0 : rightRotate };
+              tagYVal = rightTagY;
             }
 
             return (
               <motion.div
                 key={idx}
                 style={cardMotionStyle}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
                 className="bg-white rounded-3xl overflow-hidden border-2 border-[#EE964B]/20 shadow-md hover:shadow-xl transition-shadow duration-300 group flex flex-col"
               >
                 <div className="relative h-64 overflow-hidden">
@@ -101,9 +149,14 @@ export const HavenEnvironment: React.FC = () => {
                     alt={card.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-[#0D3B66] font-poppins text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-sm">
+
+                  {/* Layered Parallax Tag inside Card Image */}
+                  <motion.div
+                    style={{ y: shouldReduceMotion ? 0 : tagYVal }}
+                    className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-[#0D3B66] font-poppins text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-sm"
+                  >
                     {card.tag}
-                  </div>
+                  </motion.div>
                 </div>
 
                 <div className="p-7 flex-1 flex flex-col justify-between space-y-4">
@@ -122,9 +175,22 @@ export const HavenEnvironment: React.FC = () => {
               </motion.div>
             );
           })}
-        </div>
+        </motion.div>
+
+        {/* STATE 3 — LARGE CHILD IMAGE / MOMENTS PANEL */}
+        <motion.div
+          style={{
+            y: shouldReduceMotion ? 0 : largeImageY,
+            scale: shouldReduceMotion ? 1 : largeImageScale,
+            opacity: shouldReduceMotion ? 1 : largeImageOpacity,
+          }}
+          className="mt-16 sm:mt-24 relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white/60 bg-white"
+        >
+
+        </motion.div>
 
       </div>
     </section>
   );
 };
+

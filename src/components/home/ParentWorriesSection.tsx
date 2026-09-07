@@ -87,7 +87,7 @@ export const ParentWorriesSection: React.FC = () => {
             {/* Author Profile */}
             <div className="flex items-center gap-4 pt-2">
               <img
-                src="images\kids\kid_photo_41.webp"
+                src="images/kids/kid_photo_41.webp"
                 alt="Laura Nguyen - School Principal"
                 className="w-14 h-14 rounded-full object-cover border-2 border-[#F95738] shadow-md flex-shrink-0"
               />

@@ -5,7 +5,16 @@ import { HelpCircle } from 'lucide-react';
 
 export const FAQPage: React.FC = () => {
   return (
-    <div className="pt-32 pb-24 space-y-16">
+    <div className="pt-24 pb-24 space-y-16 bg-[#FFFDF7] text-[#1C1917] overflow-hidden">
+
+      {/* Top 5 Thin Transitioning Color Stripes */}
+      <div className="w-full relative z-30">
+        <div className="h-1 bg-[#F4D35E]" />
+        <div className="h-1 bg-[#EE964B]" />
+        <div className="h-1 bg-[#F95738]" />
+        <div className="h-1 bg-[#A91D22]" />
+        <div className="h-1 bg-[#0D3B66]" />
+      </div>
       
       {/* Header Banner */}
       <section className="relative text-center max-w-4xl mx-auto px-4 space-y-4">
